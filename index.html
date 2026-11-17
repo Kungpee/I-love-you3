@@ -1,0 +1,166 @@
+
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#000000">
+<meta name="description" content="A little animated heart made with love.">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>I Love You ❤️</title>
+
+<style>
+* {
+  box-sizing: border-box;
+}
+
+html, body {
+  margin: 0;
+  width: 100%;
+  height: 100%;
+  background: #000;
+  overflow: hidden;
+  font-family: Arial, sans-serif;
+}
+
+body {
+  display: grid;
+  place-items: center;
+}
+
+canvas {
+  display: block;
+  width: 100vw;
+  height: 100vh;
+}
+
+.hint {
+  position: fixed;
+  bottom: max(18px, env(safe-area-inset-bottom));
+  left: 0;
+  right: 0;
+  text-align: center;
+  color: #ffb6c1;
+  opacity: .8;
+  font-size: 13px;
+  letter-spacing: 1px;
+  pointer-events: none;
+  text-shadow: 0 0 10px #ff69b4;
+}
+</style>
+</head>
+
+<body>
+
+<canvas id="heart"></canvas>
+<div class="hint">Made with love ❤️</div>
+
+<script>
+const canvas = document.getElementById('heart');
+const ctx = canvas.getContext('2d');
+
+let w, h, dpr;
+let points = [];
+let scale = 1;
+let offsetX = 0;
+let offsetY = 0;
+let animationFrame = 0;
+
+// ปรับขนาดให้พอดีกับหน้าจอ
+function resize() {
+  dpr = Math.min(window.devicePixelRatio || 1, 2);
+
+  w = window.innerWidth;
+  h = window.innerHeight;
+
+  canvas.width = w * dpr;
+  canvas.height = h * dpr;
+
+  canvas.style.width = w + 'px';
+  canvas.style.height = h + 'px';
+
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+  scale = Math.min(w / 560, h / 590);
+  offsetX = w / 2;
+  offsetY = h / 2 + 2;
+}
+
+// สูตรสร้างรูปหัวใจ
+function heart(t) {
+  return {
+    x: 16 * Math.sin(t) ** 3,
+    y: 13 * Math.cos(t)
+       - 5 * Math.cos(2 * t)
+       - 2 * Math.cos(3 * t)
+       - Math.cos(4 * t)
+  };
+}
+
+// สร้างจุดข้อความให้เป็นรูปหัวใจ
+function build() {
+  points = [];
+
+  for (let s = 11; s <= 16; s++) {
+    for (let i = 0; i < 120; i++) {
+      const p = heart(i * Math.PI * 2 / 120);
+
+      points.push({
+        x: p.x * s,
+        y: p.y * s
+      });
+    }
+  }
+}
+
+// วาดหัวใจพร้อมเอฟเฟกต์
+function draw() {
+  ctx.clearRect(0, 0, w, h);
+
+  // เอฟเฟกต์หัวใจเต้น
+  const pulse = 1 + Math.sin(animationFrame * 0.045) * 0.035;
+
+  // เอฟเฟกต์คลื่นข้อความ
+  const wave = animationFrame * 0.035;
+
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.font = 'bold 8px Arial';
+  ctx.fillStyle = '#ffb6c1';
+
+  // แสงเรืองรอบตัวอักษร
+  ctx.shadowColor = '#ff69b4';
+  ctx.shadowBlur = 8;
+
+  for (let i = 0; i < points.length; i++) {
+    const p = points[i];
+
+    const ripple = Math.sin(wave + i * 0.035) * 1.5;
+
+    ctx.fillText(
+      'I love you',
+      offsetX + p.x * scale * pulse,
+      offsetY - p.y * scale * pulse + ripple
+    );
+  }
+
+  ctx.shadowBlur = 0;
+
+  animationFrame++;
+
+  // วนภาพเคลื่อนไหวต่อเนื่อง
+  requestAnimationFrame(draw);
+}
+
+// เริ่มต้นโปรแกรม
+build();
+
+window.addEventListener('resize', resize);
+
+resize();
+draw();
+</script>
+
+</body>
+</html>
